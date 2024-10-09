@@ -21,6 +21,7 @@ from designate import exceptions
 from designate.notification_handler.base import NotificationHandler
 from designate.objects import Record
 from designate.objects import RecordSet
+from designate.objects import RecordList
 
 
 CONF = designate.conf.CONF
@@ -75,7 +76,6 @@ class BaseEnhancedHandler(NotificationHandler):
 
     def _create_or_replace_recordset(self, context, records, zone_id, name,
                                     type, ttl=None):
-
         name = name.encode('idna').decode('utf-8')
         found_recordset = self.central_api.find_recordsets(
             context, {'zone_id': zone_id, 'name': name})
@@ -187,10 +187,6 @@ class NovaFixedHandler(BaseEnhancedHandler):
     def process_notification(self, context, event_type, payload):
         LOG.debug('NovaCustomHandler notification: %s. %s', event_type, payload)
         tenant_id = payload['tenant_id']
-
-        if not zone_id:
-            LOG.error('NovaFixedHandler: zone_id is None, ignore the event.')
-            return
 
         managed = {
             'managed': True,
