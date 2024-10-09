@@ -33,7 +33,7 @@ class BaseEnhancedHandler(NotificationHandler):
 
     def get_exchange_topics(self):
         exchange = CONF[self.name].control_exchange
-        topics = [topic for topic in cfg.CONF[self.name].notification_topics]
+        topics = [topic for topic in CONF[self.name].notification_topics]
         return (exchange, topics)
 
     def _get_context(self, tenant_id=None):
@@ -46,7 +46,7 @@ class BaseEnhancedHandler(NotificationHandler):
         tenant_zones =  self.central_api.find_zones(context, {'tenant_id': context.tenant})
         valid_zones = [x for x in tenant_zones 
                        if hostname.endswith(x.name[:-1])
-                       and (not x.name in cfg.CONF[self.name].zone_id.split(','))]
+                       and (not x.name in CONF[self.name].zone_id.split(','))]
         if not valid_zones:
             raise exceptions.ZoneNotFound()
         return sorted(valid_zones, key=lambda x: len(x.name), reverse=True)[0]
