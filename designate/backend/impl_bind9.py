@@ -188,11 +188,29 @@ class Bind9Backend(base.Backend):
              zone['id']),
         ]
 
+        retry_create = False
         try:
             self._execute_rndc(rndc_op)
         except exceptions.Backend as e:
-            LOG.warning("Error updating zone: %s", e)
+            if "'modzone' failed: not found" in str(e)\
+                    or "'modzone' failed: partial match" in str(e):
+                retry_create = True
+            else:
+                LOG.warning("Error updating zone: %s", e)
             pass
+        if retry_create:
+            LOG.warning("Failed to update zone as it does not exist. "
+                        "Will try to create it")
+            rndc_op = [
+                'addzone',
+                '%s %s { type slave; masters { %s;}; file "slave.%s%s"; };' %
+                (zone['name'].rstrip('.'), view, '; '.join(masters), zone['name'],
+                 zone['id'])]
+            try:
+                self._execute_rndc(rndc_op)
+            except exceptions.Backend as e:
+                LOG.warning("Failed to update-create zone: %s" % e)
+                pass
         super().update_zone(context, zone)
 
     def _execute_rndc(self, rndc_op):
