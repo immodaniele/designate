@@ -111,9 +111,9 @@ class NovaFixedHandler(BaseAddressHandler):
             LOG.error(f'NovaFixedHandler: No zone found for project {project_id}, ignore the event.')
             return
 
-        project_name = self._get_name_for_projects(context, project_id)
-        LOG.debug('project found: %s', project_name)
-        payload.update({"project": project_name})
+        #project_name = self._get_name_for_projects(context, project_id)
+        #LOG.debug('project found: %s', project_name)
+        #payload.update({"project": project_name})
 
         if event_type == 'compute.instance.create.end':
             self._create(addresses=payload['fixed_ips'],
