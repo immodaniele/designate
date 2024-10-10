@@ -126,8 +126,9 @@ class BaseAddressHandler(NotificationHandler):
 
         for addr in addresses:
             event_data = data.copy()
+            LOG.debug('Event data {addr}: %s', data)
             event_data.update(self._get_ip_data(addr))
-
+            LOG.debug('Updated Event data: %s', event_data)
             if addr['version'] == 4:
                 format = self._get_formatv4()
             else:
@@ -138,6 +139,7 @@ class BaseAddressHandler(NotificationHandler):
                     'zone_id': zone['id'],
                     'name': fmt % event_data,
                     'type': 'A' if addr['version'] == 4 else 'AAAA'}
+                LOG.debug('Recordset_values: %s', recordset_values)
 
                 record_values = {
                     'data': addr['address'],
@@ -147,6 +149,7 @@ class BaseAddressHandler(NotificationHandler):
                     'managed_resource_type': resource_type,
                     'managed_resource_id': resource_id
                 }
+                LOG.debug('record_values: %s', record_values)
                 self.central_api.create_managed_records(
                     context, zone['id'],
                     records_values=[record_values],

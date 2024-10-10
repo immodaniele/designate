@@ -81,7 +81,7 @@ class NovaFixedHandler(BaseAddressHandler):
         LOG.debug('NovaFixedHandler received notification - %s', event_type)
         LOG.debug('Payload: %s', payload)
 
-        project_id = payload.get('tenant_id') or context.project_id
+        project_id = payload.get('tenant_id')
         LOG.debug('Project ID: %s', project_id)
 
         if not project_id:
