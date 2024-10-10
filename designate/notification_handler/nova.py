@@ -56,8 +56,9 @@ class NovaFixedHandler(BaseAddressHandler):
                 ctx = designate.context.DesignateContext.from_dict(context)
             else:
                 ctx = context
-            project_name = self.central_api.get_tenant(ctx, {'tenant_id': project_id})
-            return project_name
+            project = self.central_api.get_tenant(ctx, project_id)
+            LOG.debug('Project Name: %s', project['name'])
+            return project['name']
         except Exception as e:
             LOG.error(f"Error fetching project name for project {project_id}: {str(e)}")
         
