@@ -123,4 +123,5 @@ class Service(service.Service):
             for handler in self.handlers:
                 if event_type in handler.get_event_types():
                     LOG.debug('Found handler for: %s', event_type)
+                    LOG.debug('Payload: %s', payload)  # Aggiunto per debugging
                     handler.process_notification(context, event_type, payload)

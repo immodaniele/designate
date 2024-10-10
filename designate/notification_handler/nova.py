@@ -54,8 +54,10 @@ class NovaFixedHandler(BaseAddressHandler):
 
     def process_notification(self, context, event_type, payload):
         LOG.debug('NovaFixedHandler received notification - %s', event_type)
+        LOG.debug('Payload: %s', payload)  # Nuovo log
 
         project_id = payload.get('tenant_id') or context.project_id
+        LOG.debug('Project ID: %s', project_id)  # Nuovo log
 
         if not project_id:
             LOG.error('NovaFixedHandler: project_id is None, ignore the event.')
@@ -63,13 +65,13 @@ class NovaFixedHandler(BaseAddressHandler):
 
         # Trova la zona per il project_id
         zone = self._get_zone_for_project(context, project_id)
+        LOG.debug('Zone found: %s', zone)  # Nuovo log
 
         if not zone:
             LOG.error(f'NovaFixedHandler: No zone found for project {project_id}, ignore the event.')
             return
 
         if event_type == 'compute.instance.create.end':
-            payload['project'] = context.project_name
             self._create(addresses=payload['fixed_ips'],
                          extra=payload,
                          zone_id=zone['id'],
