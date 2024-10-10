@@ -44,25 +44,39 @@ class NovaFixedHandler(BaseAddressHandler):
         data = super()._get_ip_data(addr_dict)
         data['label'] = addr_dict['label']
         return data
+    
+    def _get_zone_for_project(self, context, project_id):
+        # Cerca la zona associata al project_id
+        zones = self.central_api.find_zones(context, {'tenant_id': project_id})
+        if zones:
+            return zones[0]
+        return None
 
     def process_notification(self, context, event_type, payload):
         LOG.debug('NovaFixedHandler received notification - %s', event_type)
 
-        zone_id = CONF[self.name].zone_id
+        project_id = payload.get('tenant_id') or context.project_id
 
-        if not zone_id:
-            LOG.error('NovaFixedHandler: zone_id is None, ignore the event.')
+        if not project_id:
+            LOG.error('NovaFixedHandler: project_id is None, ignore the event.')
+            return
+
+        # Trova la zona per il project_id
+        zone = self._get_zone_for_project(context, project_id)
+
+        if not zone:
+            LOG.error(f'NovaFixedHandler: No zone found for project {project_id}, ignore the event.')
             return
 
         if event_type == 'compute.instance.create.end':
-            payload['project'] = context.get('project_name', None)
+            payload['project'] = context.project_name
             self._create(addresses=payload['fixed_ips'],
                          extra=payload,
-                         zone_id=zone_id,
+                         zone_id=zone['id'],
                          resource_id=payload['instance_id'],
                          resource_type='instance')
 
         elif event_type == 'compute.instance.delete.start':
-            self._delete(zone_id=zone_id,
+            self._delete(zone_id=zone['id'],
                          resource_id=payload['instance_id'],
                          resource_type='instance')
