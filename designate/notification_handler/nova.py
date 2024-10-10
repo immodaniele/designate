@@ -49,6 +49,20 @@ class NovaFixedHandler(BaseAddressHandler):
         data['label'] = addr_dict['label']
         return data
     
+    def _get_name_for_projects(self, context, project_id):
+        try:
+            # Ensure we're using a Context object
+            if isinstance(context, dict):
+                ctx = designate.context.DesignateContext.from_dict(context)
+            else:
+                ctx = context
+            project_name = self.central_api.get_tenant(ctx, {'tenant_id': project_id})
+            return project_name
+        except Exception as e:
+            LOG.error(f"Error fetching project name for project {project_id}: {str(e)}")
+        
+        return None
+    
     def _get_subzone_for_project(self, context, project_id):
         # Check cache first
         cached_zone = self._subzone_cache.get(project_id)
@@ -95,6 +109,10 @@ class NovaFixedHandler(BaseAddressHandler):
         if not subzone:
             LOG.error(f'NovaFixedHandler: No zone found for project {project_id}, ignore the event.')
             return
+
+        project_name = self._get_name_for_projects(context, project_id)
+        LOG.debug('project found: %s', project_name)
+        payload.update({"project": project_name})
 
         if event_type == 'compute.instance.create.end':
             self._create(addresses=payload['fixed_ips'],
